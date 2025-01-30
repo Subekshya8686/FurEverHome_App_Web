@@ -3,20 +3,22 @@ import axios from "axios";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
+import LoginModal from "./Login";
 
 // Define the mutation function
 const registerUser = async (userData) => {
   const response = await axios.post(
-    "http://localhost:5000/api/user/",
+    "http://localhost:5000/api/v1/user",
     userData
   );
   return response.data;
 };
 
-const Register = () => {
+const Register = ({ onClose }) => {
   const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState({ role: "applicant" }); // Default role
+  const [formData, setFormData] = useState({ role: "User" });
   const navigate = useNavigate();
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
 
   const {
     register,
@@ -31,6 +33,7 @@ const Register = () => {
     onSuccess: (data) => {
       alert("User registered successfully!");
       // console.log(data);
+      setIsLoginOpen(true);
     },
     onError: (err) => {
       console.error(err);
@@ -53,7 +56,6 @@ const Register = () => {
     console.log("Form submitted:", finalPayload); // Role will be included here
     try {
       await mutateAsync(finalPayload); // Trigger the mutation
-      navigate("/login"); // Redirect to login page
     } catch (err) {
       console.error("Error during mutation:", err);
     }
@@ -62,11 +64,19 @@ const Register = () => {
   const password = watch("password"); // Watch the password field to validate confirm password
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 sm:px-8">
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center font-lora">
       <div
-        className="container mx-auto max-w-5xl bg-white shadow-lg rounded-lg overflow-hidden flex"
-        style={{ height: "80vh" }}
+        className="container mx-auto max-w-full sm:max-w-md md:max-w-lg lg:max-w-5xl bg-white shadow-lg rounded-lg overflow-hidden flex md:mx-[10vw]"
+        style={{ height: "90vh" }}
       >
+        {/* Close Modal Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-white text-3xl z-50"
+        >
+          &times;
+        </button>
+
         {/* Left Section: Pet Image */}
         <div className="hidden lg:flex w-1/2 bg-[#96614D] items-center justify-center">
           <div className="rounded-lg overflow-hidden">
@@ -79,13 +89,21 @@ const Register = () => {
         </div>
 
         {/* Right Section: Form */}
-        <div className="w-full lg:w-1/2 p-10 sm:p-20 flex flex-col justify-center">
-          <h1 className="text-3xl font-bold mb-4 text-[#FF8A65]">
-            {step === 1 ? "Personal Information" : "Account Details"} 🐾
-          </h1>
+        <div className="w-full lg:w-1/2 flex flex-col justify-center">
+          <div className="mx-5 flex justify-between px-4">
+            <h1 className="text-3xl font-bold mb-4 text-[#FF8A65]">
+              {step === 1 ? "Personal Information" : "Account Details"} 🐾
+            </h1>
+            {/* <button
+              onClick={onClose}
+              className="text-black text-3xl items-start mb-5"
+            >
+              &times;
+            </button> */}
+          </div>
 
           <form
-            className="w-full"
+            className="px-10 sm:p-4 mx-5"
             onSubmit={
               step === 1 ? handleSubmit(handleNext) : handleSubmit(onSubmit)
             }
@@ -184,24 +202,6 @@ const Register = () => {
                   )}
                 </label>
 
-                {/* Username */}
-                {/* <label className="form-control w-full mb-6 relative">
-                  <span className="label-text text-gray-700">Username</span>
-                  <input
-                    type="text"
-                    placeholder="Username"
-                    {...register("username", {
-                      required: "Please choose a username.",
-                    })}
-                    className="input input-bordered w-full rounded-lg text-sm px-4 py-2 focus:ring-2 focus:ring-[#FF8A65] transition-all duration-200"
-                  />
-                  {errors.username && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {errors.username.message}
-                    </p>
-                  )}
-                </label> */}
-
                 {/* Password */}
                 <label className="form-control w-full mb-6 relative">
                   <span className="label-text text-gray-700">Password</span>
@@ -266,6 +266,13 @@ const Register = () => {
           </form>
         </div>
       </div>
+      {isLoginOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
+            <LoginModal onClose={() => setIsLoginOpen(false)} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
