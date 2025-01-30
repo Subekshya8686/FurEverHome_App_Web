@@ -12,11 +12,13 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+    "@fontsource/lora": "^5.1.1",
     "@heroicons/react": "^2.2.0",
     "@mui/material": "^6.3.0",
     "@tanstack/react-query": "^5.64.2",
     "axios": "^1.7.9",
     "daisyui": "^4.12.23",
+    "jwt-decode": "^4.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.54.2",
