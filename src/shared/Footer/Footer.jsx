@@ -12,7 +12,7 @@ const Footer = ({ footerRef }) => {
         width: "100%",
       }}
     >
-      <p className="text-sm text-[#A35E47] font-poppins">
+      <p className="text-sm text-[#A35E47] font-lora">
         © 2025 Animal Adoption Platform. All rights reserved.
       </p>
     </div>
