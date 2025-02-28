@@ -1,6 +1,9 @@
-import React from "react";
+import { useState } from "react";
+import CreatePet from "./CreatePet";
 
 const AdminDashboard = () => {
+  const [isCreatePetOpen, setIsCreatePetOpen] = useState(false); // State to toggle between table and create pet form
+
   const columns = ["Pet ID", "Name", "Type", "Breed", "Status", "Action"];
   const rows = [
     {
@@ -76,7 +79,7 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <div className="flex-1 px-4 bg-gray-100 overflow-y-auto">
+    <div className="flex-1 px-4 bg-gray-100 overflow-y-auto font-lora">
       {/* Header */}
       <div className="flex flex-col justify-between mb-4">
         <div className="avatar mt-4 sm:mt-0 justify-end">
@@ -90,56 +93,69 @@ const AdminDashboard = () => {
         </div>
         <div className="flex flex-row justify-between">
           <h2 className="text-lg sm:text-2xl font-bold">Pet List</h2>
-          <h2 className="text-lg sm:text-2xl font-bold">Pet Add</h2>
+          {/* Add Pet Button */}
+          <h2
+            className="text-lg sm:text-2xl font-bold cursor-pointer text-blue-500"
+            onClick={() => setIsCreatePetOpen(true)} // Open create pet form on click
+          >
+            Add Pet
+          </h2>
         </div>
       </div>
 
-      <div className="bg-base-100 shadow-xl rounded-lg p-4 sm:p-6 max-w-full h-full max-h-full">
-        <h3 className="text-md sm:text-lg font-bold mb-4">Pet List</h3>
-        <div className="h-[500px] sm:h-[400px] overflow-x-auto max-h-full">
-          <table className="table-auto w-[100%] h-[100%] text-sm sm:text-base">
-            <thead className="sticky top-0 bg-white z-10">
-              <tr>
-                {columns.map((column, index) => (
-                  <th key={index} className={`p-2 text-left`}>
-                    {column}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((pet, index) => (
-                <tr key={index} className="border-b">
-                  <td className="p-2">{pet.id}</td>
-                  <td className="p-2">{pet.name}</td>
-                  <td className="p-2">{pet.type}</td>
-                  <td className="p-2">{pet.breed}</td>
-                  <td className="p-2">
-                    <span
-                      className={`badge ${
-                        pet.status === "Pending"
-                          ? "badge-info"
-                          : "badge-success"
-                      }`}
-                    >
-                      {pet.status}
-                    </span>
-                  </td>
-                  <td className="p-2">
-                    <div className="flex gap-2">
-                      <button className="btn btn-sm btn-outline btn-success">
-                        View
-                      </button>
-                      <button className="btn btn-sm btn-outline btn-warning">
-                        Update
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {/* Conditionally render Create Pet Form or Pet List */}
+      <div className="bg-base-100 shadow-xl rounded-lg p-4 sm:p-6 max-w-full h-[80vh] overflow-y-auto">
+        {isCreatePetOpen ? (
+          <CreatePet /> // Display CreatePet component if state is true
+        ) : (
+          <>
+            <h3 className="text-md sm:text-lg font-bold mb-4">Pet List</h3>
+            <div className="h-[500px] sm:h-[400px] overflow-x-auto max-h-full">
+              <table className="table-auto w-[100%] h-[100%] text-sm sm:text-base">
+                <thead className="sticky top-0 bg-white z-10">
+                  <tr>
+                    {columns.map((column, index) => (
+                      <th key={index} className={`p-2 text-left`}>
+                        {column}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((pet, index) => (
+                    <tr key={index} className="border-b">
+                      <td className="p-2">{pet.id}</td>
+                      <td className="p-2">{pet.name}</td>
+                      <td className="p-2">{pet.type}</td>
+                      <td className="p-2">{pet.breed}</td>
+                      <td className="p-2">
+                        <span
+                          className={`badge ${
+                            pet.status === "Pending"
+                              ? "badge-info"
+                              : "badge-success"
+                          }`}
+                        >
+                          {pet.status}
+                        </span>
+                      </td>
+                      <td className="p-2">
+                        <div className="flex gap-2">
+                          <button className="btn btn-sm btn-outline btn-success">
+                            View
+                          </button>
+                          <button className="btn btn-sm btn-outline btn-warning">
+                            Update
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
