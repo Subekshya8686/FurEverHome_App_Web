@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import AppBar from "../../shared/AppBar/AppBar";
+import ForgotPassword from "../../shared/ChangePassword/ForgetPassword";
 import Footer from "../../shared/Footer/Footer";
 
 const fetchPets = async () => {
@@ -61,6 +62,11 @@ const UserProfile = () => {
   const handleOpenEditModal = () => setOpenEditModal(true);
   const handleCloseEditModal = () => setOpenEditModal(false);
 
+  const [openForgotModal, setOpenForgotModal] = useState(false);
+
+  const handleOpenForgotModal = () => setOpenForgotModal(true);
+  const handleCloseForgotModal = () => setOpenForgotModal(false);
+
   // Handle profile data change
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -94,6 +100,16 @@ const UserProfile = () => {
       handleCloseEditModal();
     } catch (error) {
       console.error("Error updating user:", error);
+    }
+  };
+
+  const [image, setImage] = useState(userData.image || "/default-user.png");
+
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setImage(imageUrl);
     }
   };
 
@@ -135,9 +151,15 @@ const UserProfile = () => {
         <div className="bg-white shadow-md rounded-lg p-6 mx-6 md:mx-12 lg:mx-20 flex flex-col lg:flex-row items-center justify-center gap-12 my-4 border-2">
           <div className="w-full lg:w-1/2 flex justify-center">
             <img
-              src={userData.image || "/default-user.png"}
+              src={image}
               alt={userData.name}
               className="w-72 md:w-80 lg:w-96 h-auto rounded-xl shadow-lg border-4"
+            />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="mt-4 text-sm text-gray-700"
             />
           </div>
 
@@ -148,10 +170,6 @@ const UserProfile = () => {
             <p className="text-xl text-gray-700 mb-4">{userData.email}</p>
             <p className="text-lg text-gray-600 mb-4">{userData.phone}</p>
             <p className="text-lg text-gray-600 mb-4">{userData.address}</p>
-            {/* <p className="text-lg text-gray-600 mb-6">
-              Date of Birth:{" "}
-              {new Date(userData.dateOfBirth).toLocaleDateString()}
-            </p> */}
             <div className="flex items-center justify-center lg:justify-start gap-4">
               <button
                 onClick={handleOpenEditModal}
@@ -160,7 +178,7 @@ const UserProfile = () => {
                 Edit Profile
               </button>
               <button
-                onClick={() => navigate(`/change-password/${id}`)}
+                onClick={handleOpenForgotModal}
                 className="bg-[#96614D] text-white px-8 py-3 rounded-lg hover:bg-[#A2715E] transition-all duration-300 shadow-md"
               >
                 Change Password
@@ -229,7 +247,7 @@ const UserProfile = () => {
                 className="rounded-lg overflow-hidden shadow-sm bg-white hover:shadow-md transition-shadow duration-300 border-2 cursor-pointer"
               >
                 <img
-                  src={pet.image}
+                  src={`http://localhost:5000/uploads/${pet?.photo}`}
                   alt={pet.name}
                   className="w-full h-56 object-cover rounded-t-lg"
                 />
@@ -251,6 +269,13 @@ const UserProfile = () => {
       </div>
 
       <Footer />
+
+      {openForgotModal && (
+        <ForgotPassword
+          open={openForgotModal}
+          handleClose={handleCloseForgotModal}
+        />
+      )}
 
       {/* Edit Profile Modal */}
       <Dialog open={openEditModal} onClose={handleCloseEditModal}>
