@@ -1,38 +1,68 @@
 import { ArrowLeftIcon } from "@heroicons/react/16/solid";
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import AppBar from "../../shared/AppBar/AppBar";
 import ConfirmDialogBox from "../../shared/ConfirmDialogBox/ConfirmDialogBox";
 
 const PetAdoptionForm = () => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
-  const [isDialogOpen, setIsDialogOpen] = useState(false); // State to manage dialog visibility
-  const [isLoading, setIsLoading] = useState(false); // State to manage loading state for confirm button
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { id } = useParams();
+  const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    city: "",
-    address: "",
-    householdMembers: "",
-    hasPets: "",
-    livingSituation: "",
+    applicantId: "",
+    petId: "",
+    applicantName: "",
+    applicantEmail: "",
+    applicantPhone: "",
+    districtOrCity: "",
+    homeAddress: "",
+    householdMembers: 0,
+    hasPets: false,
+    petDetails: "",
     residenceType: "",
     reasonForAdoption: "",
     experienceWithPets: "",
     agreementToTerms: false,
+    submittedAt: new Date(),
+    adminId: null,
+    adminStatus: "Under Review",
+    adminNotes: "",
+    handledAt: null,
   });
+
+  const [pet, setPet] = useState(null);
+  const userId = localStorage.getItem("userId");
+
+  useEffect(() => {
+    // Fetch pet data (this can be done using a real API call)
+    const fetchPetData = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:5000/api/v1/pet/get/${id}`
+        );
+        setPet(response.data);
+
+        // Check if the logged-in user's ID matches any in the bookmarkedBy array
+        // Assuming the userId is stored in localStorage
+      } catch (error) {
+        console.error("Error fetching pet data:", error);
+      }
+    };
+
+    fetchPetData();
+  }, [id]);
+  //
+  // console.log("Pet data:", pet);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-
-    // Check if the field is 'householdMembers' and the value is negative
     if (name === "householdMembers" && value < 0) {
-      return; // Prevent setting a negative value
+      return;
     }
-
     setFormData({
       ...formData,
       [name]: type === "checkbox" ? checked : value,
@@ -61,84 +91,139 @@ const PetAdoptionForm = () => {
     navigate(-1);
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // Prevent default form submission
+
+    setIsLoading(true); // Set loading to true while submitting the form
+
+    try {
+      // Post request to submit the adoption form
+      const response = await axios.post(
+        "http://localhost:5000/api/v1/adopt/submit", // Your POST API endpoint
+        {
+          ...formData,
+          applicantId: userId, // Applicant ID from localStorage
+          petId: id, // Pet ID from URL params
+        }
+      );
+
+      console.log("Application Submitted:", response.data);
+      setIsLoading(false);
+
+      // Redirect to another page after successful submission
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 2000);
+    } catch (error) {
+      if (!formData.residenceType) {
+        alert("Please select a residence type.");
+        return; // Prevent form submission
+      }
+      console.error("Error submitting application:", error);
+      setIsLoading(false); // Stop loading in case of an error
+    }
+    if (!formData.residenceType) {
+      alert("Please select a residence type.");
+      return; // Prevent form submission
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 font-lora">
       <AppBar />
 
       <div className="flex justify-center items-center p-6">
         <div className="bg-white shadow-lg rounded-lg p-6 max-w-6xl w-full flex flex-col-reverse lg:flex-row">
-          <div className="w-full lg:w-2/3 pr-0 lg:pr-6 ">
+          <div className="w-full lg:w-2/3 pr-0 lg:pr-6">
             {currentPage === 1 ? (
               <>
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">
                   Personal Details
                 </h2>
-                <form className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <form
+                  className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                  onSubmit={handleSubmit}
+                >
                   <div>
-                    <label htmlFor="name" className="block text-gray-700">
+                    <label
+                      htmlFor="applicantName"
+                      className="block text-gray-700"
+                    >
                       Name
                     </label>
                     <input
                       type="text"
-                      id="name"
-                      name="name"
-                      value={formData.name}
+                      id="applicantName"
+                      name="applicantName"
+                      value={formData.applicantName}
                       onChange={handleChange}
                       placeholder="Name"
                       className="input input-bordered w-full"
                     />
                   </div>
                   <div>
-                    <label htmlFor="email" className="block text-gray-700">
+                    <label
+                      htmlFor="applicantEmail"
+                      className="block text-gray-700"
+                    >
                       Email
                     </label>
                     <input
                       type="email"
-                      id="email"
-                      name="email"
-                      value={formData.email}
+                      id="applicantEmail"
+                      name="applicantEmail"
+                      value={formData.applicantEmail}
                       onChange={handleChange}
                       placeholder="Email"
                       className="input input-bordered w-full"
                     />
                   </div>
                   <div>
-                    <label htmlFor="phone" className="block text-gray-700">
+                    <label
+                      htmlFor="applicantPhone"
+                      className="block text-gray-700"
+                    >
                       Phone Number
                     </label>
                     <input
                       type="text"
-                      id="phone"
-                      name="phone"
-                      value={formData.phone}
+                      id="applicantPhone"
+                      name="applicantPhone"
+                      value={formData.applicantPhone}
                       onChange={handleChange}
                       placeholder="Phone Number"
                       className="input input-bordered w-full"
                     />
                   </div>
                   <div>
-                    <label htmlFor="city" className="block text-gray-700">
-                      City
+                    <label
+                      htmlFor="districtOrCity"
+                      className="block text-gray-700"
+                    >
+                      District or City
                     </label>
                     <input
                       type="text"
-                      id="city"
-                      name="city"
-                      value={formData.city}
+                      id="districtOrCity"
+                      name="districtOrCity"
+                      value={formData.districtOrCity}
                       onChange={handleChange}
                       placeholder="City"
                       className="input input-bordered w-full"
                     />
                   </div>
                   <div>
-                    <label htmlFor="address" className="block text-gray-700">
+                    <label
+                      htmlFor="homeAddress"
+                      className="block text-gray-700"
+                    >
                       Home Address
                     </label>
                     <input
                       type="text"
-                      id="address"
-                      name="address"
-                      value={formData.address}
+                      id="homeAddress"
+                      name="homeAddress"
+                      value={formData.homeAddress}
                       onChange={handleChange}
                       placeholder="Home Address"
                       className="input input-bordered w-full"
@@ -164,27 +249,10 @@ const PetAdoptionForm = () => {
 
                   <div>
                     <label
-                      htmlFor="livingSituation"
-                      className="block text-gray-700"
-                    >
-                      Living situation (house, apartment, etc.)
-                    </label>
-                    <input
-                      type="text"
-                      id="livingSituation"
-                      name="livingSituation"
-                      value={formData.livingSituation}
-                      onChange={handleChange}
-                      placeholder="Living situation"
-                      className="input input-bordered w-full"
-                    />
-                  </div>
-                  <div>
-                    <label
                       htmlFor="residenceType"
                       className="block text-gray-700"
                     >
-                      Do you own or rent your home?
+                      Residence Type (Own or Rent)
                     </label>
                     <select
                       id="residenceType"
@@ -193,8 +261,9 @@ const PetAdoptionForm = () => {
                       onChange={handleChange}
                       className="select select-bordered w-full"
                     >
-                      <option>Own</option>
-                      <option>Rent</option>
+                      <option value="">Select Residence Type</option>
+                      <option value="Own">Own</option>
+                      <option value="Rent">Rent</option>
                     </select>
                   </div>
                   <button
@@ -223,8 +292,8 @@ const PetAdoptionForm = () => {
                       onChange={handleChange}
                       className="select select-bordered w-full"
                     >
-                      <option>Yes</option>
-                      <option>No</option>
+                      <option value="true">Yes</option>
+                      <option value="false">No</option>
                     </select>
                   </div>
                   <div>
@@ -277,14 +346,15 @@ const PetAdoptionForm = () => {
                   <div className="flex justify-between">
                     <button
                       type="button"
-                      className="btn bg-[#6AA693] text-white w-1/3 md:col-span-2 flex"
+                      className="btn bg-[#6AA693] text-white w-1/3 md:col-span-2"
                       onClick={handleBack}
                     >
                       Back
                     </button>
                     <button
-                      type="button"
-                      className="btn bg-[#6AA693] text-white w-1/3 md:col-span-2 flex"
+                      type="submit"
+                      onClick={handleSubmit}
+                      className="btn bg-[#6AA693] text-white w-1/3 md:col-span-2"
                     >
                       Submit Application
                     </button>
@@ -303,26 +373,35 @@ const PetAdoptionForm = () => {
             </button>
             <div className="w-full bg-gray-100 p-6 rounded-lg mt-6 lg:mt-0 md:mb-4 sm:mb-4">
               <div className="flex flex-col items-center">
+                {/* Display pet image */}
                 <img
-                  src="/path-to-cat-image.jpg"
-                  alt="Charlie"
+                  src={`http://localhost:5000/uploads/${pet?.photo}`} // Ensure the image URL is correct
+                  alt={pet?.name || "Pet Image"}
                   className="w-32 h-32 rounded-lg object-cover"
                 />
+                {/* Display pet name and gender */}
                 <h3 className="text-lg font-bold mt-2">
-                  Charlie <span className="text-blue-500">♂</span>
+                  {pet?.name}{" "}
+                  <span className="text-blue-500">
+                    {pet?.gender === "Male" ? "♂" : "♀"}
+                  </span>
                 </h3>
-                <p className="text-gray-600">18 months</p>
-                <p className="text-gray-600">Orange Cat</p>
+                {/* Display pet age */}
+                <p className="text-gray-600">{pet?.age} months</p>
+                {/* Display pet type */}
+                <p className="text-gray-600">{pet?.type}</p>
               </div>
               <div className="mt-4 border-t pt-4">
                 <h4 className="font-semibold">Description</h4>
                 <p className="text-gray-600 text-sm">
-                  Friendly and playful, looking for a loving home.
+                  {pet?.description || "No description available"}
                 </p>
               </div>
               <div className="mt-4 border-t pt-4">
                 <h4 className="font-semibold">Medical Conditions</h4>
-                <p className="text-gray-600 text-sm">None</p>
+                <p className="text-gray-600 text-sm">
+                  {pet?.medicalConditions || "None"}
+                </p>
               </div>
             </div>
           </div>
@@ -331,13 +410,10 @@ const PetAdoptionForm = () => {
 
       {isDialogOpen && (
         <ConfirmDialogBox
-          open={isDialogOpen}
-          handleClose={handleDialogClose}
-          label={
-            "Are you sure you want to go back? Your progress will be lost."
-          }
+          isOpen={isDialogOpen}
           handleConfirm={handleDialogConfirm}
-          isLoading={isLoading}
+          handleClose={handleDialogClose}
+          label="Are you sure you want to go back without saving?"
         />
       )}
     </div>
