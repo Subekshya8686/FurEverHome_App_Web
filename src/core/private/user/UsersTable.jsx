@@ -56,11 +56,11 @@ const UsersTable = () => {
         <div className="flex-1 px-4 font-lora">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg sm:text-2xl font-bold">Users List</h2>
-            <button onClick={() => setMenuOpen((prev) => !prev)}>
+            {/* <button onClick={() => setMenuOpen((prev) => !prev)}>
               <UserCircleIcon className="w-12 h-12 text-[#A35E47] hover:text-[#8A4D3B]" />
-            </button>
+            </button> */}
           </div>
-          {menuOpen && (
+          {/* {menuOpen && (
             <div className="absolute right-10 z-10 w-40 bg-white shadow-lg rounded-lg p-2">
               <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                 Profile
@@ -69,7 +69,7 @@ const UsersTable = () => {
                 Logout
               </button>
             </div>
-          )}
+          )} */}
           <div className="bg-base-100 shadow-xl rounded-lg p-4 sm:p-6 max-w-full h-[80vh]">
             {isCreateUserOpen ? (
               <CreateUser handleModalClose={() => setIsCreateUserOpen(false)} />

@@ -6,7 +6,7 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LoginModal from "../../core/public/Login";
-import Register from "../../core/public/Register";
+import Register from "../../core/public/register";
 import ConfirmDialogBox from "../ConfirmDialogBox/ConfirmDialogBox";
 
 const AppBar = ({
@@ -41,6 +41,18 @@ const AppBar = ({
   const handleHomeClick = () => {
     navigate("/");
     homeRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+  const handleBreedClick = () => {
+    navigate("/");
+    breedsRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+  const handleAvailableClick = () => {
+    navigate("/");
+    petsRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+  const handleFooterClick = () => {
+    navigate("/");
+    footerRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   const handleKeyDown = (event) => {
@@ -94,22 +106,13 @@ const AppBar = ({
           <button className="text-black " onClick={handleHomeClick}>
             Home
           </button>
-          <button
-            className="text-black "
-            onClick={() => scrollToSection(breedsRef)}
-          >
+          <button className="text-black " onClick={handleBreedClick}>
             Breed
           </button>
-          <button
-            className="text-black "
-            onClick={() => scrollToSection(petsRef)}
-          >
+          <button className="text-black " onClick={handleAvailableClick}>
             Available Pets
           </button>
-          <button
-            className="text-black "
-            onClick={() => scrollToSection(footerRef)}
-          >
+          <button className="text-black " onClick={handleFooterClick}>
             Contact
           </button>
         </div>
@@ -203,7 +206,7 @@ const AppBar = ({
           <button
             className="text-black "
             onClick={() => {
-              scrollToSection(breedsRef);
+              handleBreedClick();
               setMobileMenuOpen(false);
             }}
           >
@@ -212,7 +215,7 @@ const AppBar = ({
           <button
             className="text-black "
             onClick={() => {
-              scrollToSection(petsRef);
+              handleAvailableClick();
               setMobileMenuOpen(false);
             }}
           >
@@ -221,7 +224,7 @@ const AppBar = ({
           <button
             className="text-black "
             onClick={() => {
-              scrollToSection(footerRef);
+              handleFooterClick();
               setMobileMenuOpen(false);
             }}
           >

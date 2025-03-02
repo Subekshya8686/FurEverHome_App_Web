@@ -53,6 +53,7 @@ const LoginModal = ({ onClose }) => {
       console.log("Login successful");
       onClose();
       // Redirect to the dashboard after successful login
+      window.location.reload();
     } else {
       console.log("Login failed");
       // Handle invalid credentials or error

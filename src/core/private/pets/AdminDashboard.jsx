@@ -1,4 +1,4 @@
-import { PlusCircleIcon, UserCircleIcon } from "@heroicons/react/24/solid";
+import { PlusCircleIcon } from "@heroicons/react/24/solid";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import LoadingScreen from "../../../shared/LoadingScreen/LoadingScreen";
@@ -9,13 +9,14 @@ const AdminDashboard = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState(""); // status filter
   const [pet, setPet] = useState(null);
 
   const [rows, setRows] = useState([]);
   console.log("Pet data:", rows);
 
   const [isLoading, setIsLoading] = useState(true); // Track the loading state
+  const [size, setSize] = useState(0);
 
   useEffect(() => {
     const fetchPetData = async () => {
@@ -23,7 +24,12 @@ const AdminDashboard = () => {
         // Simulate 2 seconds delay before fetching data
         setTimeout(async () => {
           const response = await axios.get(
-            `http://localhost:5000/api/v1/pet/getAllPets`
+            `http://localhost:5000/api/v1/pet/getAllPets`,
+            {
+              params: {
+                size, // Send the size (per page)
+              },
+            }
           );
           setPet(response.data.pets);
           setRows(response.data.pets);
@@ -41,33 +47,22 @@ const AdminDashboard = () => {
     return () => clearTimeout(fetchPetData);
   }, []);
 
-  // useEffect(() => {
-  //   // Fetch pet data (this can be done using a real API call)
-  //   const fetchPetData = async () => {
-  //     try {
-  //       const response = await axios.get(
-  //         `http://localhost:5000/api/v1/pet/getAllPets`
-  //       );
-  //       setPet(response.data.pets);
-  //       setRows(response.data.pets);
+  const columns = ["Name", "Type", "Breed", "Vaccinated", "Status"];
 
-  //       console.log("Pet data:", response.data);
-  //     } catch (error) {
-  //       console.error("Error fetching pet data:", error);
-  //     }
-  //   };
-
-  //   fetchPetData();
-  // }, []);
-
-  const columns = ["Name", "Type", "Breed", "Vaccinated", "Status", "Action"];
-
+  // Update the filter logic to include status filter
   const filteredRows = rows.filter(
     (pet) =>
       pet.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
       (typeFilter ? pet.type === typeFilter : true) &&
-      (statusFilter ? pet.status === statusFilter : true)
+      (statusFilter ? pet.adoptionStatus === statusFilter : true) // Filter by adoption status
   );
+
+  const capitalizeWords = (str) => {
+    return str
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
+  };
 
   return (
     <>
@@ -77,29 +72,9 @@ const AdminDashboard = () => {
         <div className="flex-1 px-4 font-lora">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg sm:text-2xl font-bold">Pet List</h2>
-            <button onClick={() => setMenuOpen((prev) => !prev)}>
-              <UserCircleIcon className="w-12 h-12 text-[#A35E47] hover:text-[#8A4D3B]" />
-            </button>
           </div>
-          {menuOpen && (
-            <div className="absolute right-10 z-10 w-40 bg-white shadow-lg rounded-lg p-2">
-              <button
-                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                // onClick={handleProfileClick}
-              >
-                Profile
-              </button>
 
-              <button
-                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                // onClick={handleLogout}
-              >
-                Logout
-              </button>
-            </div>
-          )}
-
-          <div className="bg-base-100 shadow-xl rounded-lg p-4 sm:p-6 max-w-full h-[80vh] overflow-auto">
+          <div className="bg-base-100 shadow-xl rounded-lg p-4 sm:p-6 max-w-full h-[85vh] overflow-auto">
             {isCreatePetOpen ? (
               <CreatePet handleModalClose={() => setIsCreatePetOpen(false)} />
             ) : (
@@ -118,6 +93,8 @@ const AdminDashboard = () => {
                       <option value="">All Types</option>
                       <option value="Dog">Dog</option>
                       <option value="Cat">Cat</option>
+                      <option value="Rabbit">Rabbit</option>
+                      <option value="bird">Bird</option>
                     </select>
                     <select
                       className="select select-bordered rounded-xl"
@@ -125,8 +102,9 @@ const AdminDashboard = () => {
                       onChange={(e) => setStatusFilter(e.target.value)}
                     >
                       <option value="">All Status</option>
-                      <option value="Pending">Pending</option>
-                      <option value="Adopted">Adopted</option>
+                      <option value="available">Available</option>
+                      <option value="adopted">Adopted</option>
+                      <option value="in foster care">In Foster Care</option>
                     </select>
                   </div>
                   <div className="flex gap-4 mb-2 items-center">
@@ -148,7 +126,7 @@ const AdminDashboard = () => {
                 </div>
                 {/* Table Wrapper with scroll */}
                 <div className="h-[500px] sm:h-[400px] overflow-y-auto">
-                  <table className="table-auto w-full text-sm sm:text-base">
+                  <table className="table-auto table-zebra w-full text-sm sm:text-base">
                     <thead className="sticky top-0 bg-white z-10">
                       <tr>
                         {columns.map((column, index) => (
@@ -159,15 +137,17 @@ const AdminDashboard = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {rows.map((pet, index) => (
+                      {filteredRows.map((pet, index) => (
                         <tr key={index} className="border-b">
-                          <td className="p-2">{pet.name}</td>
-                          <td className="p-2">{pet.type}</td>
-                          <td className="p-2">{pet.breed}</td>
+                          <td className="p-2">{capitalizeWords(pet.name)}</td>
+                          <td className="p-2">{capitalizeWords(pet.type)}</td>
+                          <td className="p-2">{capitalizeWords(pet.breed)}</td>
                           <td className="p-2">
                             <span
                               className={`badge ${
-                                pet.vaccinated ? "badge-success" : "badge-error"
+                                pet.vaccinated
+                                  ? "badge-success text-white font-bold"
+                                  : "badge-error font-bold"
                               }`}
                             >
                               {pet.vaccinated ? "Yes" : "No"}
@@ -177,26 +157,16 @@ const AdminDashboard = () => {
                             <span
                               className={`badge ${
                                 pet.adoptionStatus === "available"
-                                  ? "badge-info"
+                                  ? "badge-info font-bold"
                                   : pet.adoptionStatus === "adopted"
-                                  ? "badge-success"
+                                  ? "badge-success text-white font-bold"
                                   : pet.adoptionStatus === "in foster care"
-                                  ? "badge-warning"
+                                  ? "badge-warning font-bold"
                                   : ""
                               }`}
                             >
-                              {pet.adoptionStatus}
+                              {capitalizeWords(pet.adoptionStatus)}
                             </span>
-                          </td>
-                          <td className="p-2">
-                            <div className="flex gap-2">
-                              <button className="btn btn-sm btn-outline btn-success">
-                                View
-                              </button>
-                              <button className="btn btn-sm btn-outline btn-warning">
-                                Update
-                              </button>
-                            </div>
                           </td>
                         </tr>
                       ))}
