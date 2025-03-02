@@ -1,7 +1,48 @@
-import { UserCircleIcon } from "@heroicons/react/24/solid";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import LoadingScreen from "../../../shared/LoadingScreen/LoadingScreen";
+
+const DownloadCSVButton = () => {
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/v1/foster/download",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      // Check if the response is successful
+      if (response.ok) {
+        // Create a blob from the response
+        const blob = await response.blob();
+
+        // Create a download link
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "adoption_applications.csv"; // File name for the download
+        link.click(); // Trigger the download
+      } else {
+        console.error("Failed to download CSV");
+      }
+    } catch (error) {
+      console.error("Error downloading CSV:", error);
+    }
+  };
+
+  return (
+    <button
+      className="bg-[#66AEA6] text-white hover:bg-[#30756D] py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 flex items-center"
+      onClick={handleDownload}
+    >
+      Export as CSV
+      <ArrowDownTrayIcon className="w-5 h-5 ml-2" />
+    </button>
+  );
+};
 
 const PetAdoptionForms = () => {
   const [isCreatePetOpen, setIsCreatePetOpen] = useState(false);
@@ -131,10 +172,11 @@ const PetAdoptionForms = () => {
                 <input
                   type="text"
                   placeholder="Search by Name"
-                  className="input input-bordered h-10 max-w-xs rounded-3xl items-center flex"
+                  className="input input-bordered h-10 max-w-xs rounded-xl items-center flex"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
+                <DownloadCSVButton />
               </div>
             </div>
 
