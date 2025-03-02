@@ -1,3 +1,4 @@
+import { ChevronDownIcon } from "@heroicons/react/24/solid";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import AppBar from "../../shared/AppBar/AppBar";
@@ -26,6 +27,7 @@ const SearchPage = () => {
   const [selectedBreed, setSelectedBreed] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [filteredBreeds, setFilteredBreeds] = useState([]);
+  const [showBreedFilter, setShowBreedFilter] = useState(false); // Track visibility of breed filter
 
   useEffect(() => {
     if (!query) return;
@@ -104,6 +106,10 @@ const SearchPage = () => {
     navigateToPage(1);
   };
 
+  const toggleBreedFilter = () => {
+    setShowBreedFilter(!showBreedFilter); // Toggle the visibility of the breed filter
+  };
+
   return (
     <div className="min-h-screen flex flex-col font-lora">
       <AppBar />
@@ -117,10 +123,20 @@ const SearchPage = () => {
             Filters
           </h2>
 
-          {filteredBreeds.length > 0 && (
+          {/* Add a button to toggle visibility of breed filter */}
+          <button
+            onClick={toggleBreedFilter}
+            className="w-full pt-2 rounded-3xl flex items-center justify-center md:justify-start"
+          >
+            <h3 className="font-semibold text-center md:text-left">Breed</h3>
+            <ChevronDownIcon className="ml-2 w-5 h-3" />
+          </button>
+
+          {/* Conditionally render breed filter section */}
+          {showBreedFilter && filteredBreeds.length > 0 && (
             <div className="mb-4">
-              <h3 className="font-semibold text-center md:text-left">Breed</h3>
-              <div className="flex flex-wrap justify-center md:justify-start mt-2">
+              {/* <h3 className="font-semibold text-center md:text-left">Breed</h3> */}
+              <div className="flex flex-wrap justify-center md:justify-start ">
                 {filteredBreeds.map((breed) => (
                   <button
                     key={breed}
@@ -137,6 +153,7 @@ const SearchPage = () => {
               </div>
             </div>
           )}
+          <div className="divider"></div>
           <div className="mb-4">
             <h3 className="font-semibold text-center md:text-left">Status</h3>
             <div className="flex flex-wrap justify-center md:justify-start mt-2">
@@ -158,7 +175,7 @@ const SearchPage = () => {
 
           <button
             onClick={clearFilters}
-            className="bg-[#96614D] text-white w-full py-2 mt-4 rounded-3xl"
+            className="bg-[#96614D] text-white w-full py-2 mt-4 rounded-3xl justify-end"
           >
             Clear Filters
           </button>
@@ -171,16 +188,16 @@ const SearchPage = () => {
                 key={pet.id}
                 onClick={() => {
                   window.scrollTo({ top: 0, behavior: "smooth" });
-                  navigate(`/profile/${pet.id}`);
+                  navigate(`/profile/${pet._id}`);
                 }}
-                className="rounded-lg overflow-hidden shadow-sm bg-white hover:shadow-md transition-shadow duration-300 border-2 cursor-pointer h-80 flex flex-col"
+                className="rounded-lg overflow-hidden shadow-sm bg-white hover:shadow-md transition-shadow duration-300 border-2 cursor-pointer"
               >
                 <img
                   src={`http://localhost:5000/uploads/${pet.photo}`}
                   alt={pet.name}
                   className="w-full h-56 object-cover rounded-t-lg"
                 />
-                <div className="p-6 text-center flex-grow flex flex-col justify-between">
+                <div className="p-6 text-center relative">
                   <h4 className="text-xl font-semibold text-gray-800 font-poppins mb-2">
                     {pet.name}
                   </h4>
@@ -191,7 +208,7 @@ const SearchPage = () => {
                     href="#"
                     className="text-gray-500 hover:text-gray-600 text-sm self-end"
                   >
-                    {"View More"}
+                    {"View More >>>"}
                   </a>
                 </div>
               </div>
