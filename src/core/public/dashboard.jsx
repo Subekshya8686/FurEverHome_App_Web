@@ -85,10 +85,12 @@ const Dashboard = () => {
         </div>
         <div className="text-center lg:text-left w-full lg:w-1/2">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-black mb-4 font-poppins">
-            Welcome to Your Dashboard
+            Everybody needs a friend in Life.
           </h2>
           <p className="text-base sm:text-lg md:text-xl text-black font-poppins max-w-lg mx-auto lg:mx-0">
-            Manage your listed pets and monitor adoption requests.
+            The Corgi is intelligent, quick and curious. It is a kind,
+            adventurous breed which shows a large measure of independence. They
+            are good with children and normally kind with strangers.
           </p>
         </div>
       </div>

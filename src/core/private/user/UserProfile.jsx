@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { CameraIcon, UserCircleIcon } from "@heroicons/react/24/solid";
+import { CameraIcon } from "@heroicons/react/24/solid";
 import { Dialog, DialogContent } from "@mui/material";
 import axios from "axios";
 import ForgotPassword from "../../../shared/ChangePassword/ForgetPassword";
@@ -176,7 +176,7 @@ const AdminProfile = () => {
             >
               {imagePreview ? (
                 <img
-                  src={`http://localhost:5000/uploads/${imagePreview}`}
+                  src={`http://localhost:5000/uploads/${adminData.image}`}
                   alt="Preview"
                   className="w-full h-full object-cover rounded-md shadow-md"
                 />
