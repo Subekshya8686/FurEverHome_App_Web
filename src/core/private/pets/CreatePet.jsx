@@ -1,4 +1,5 @@
 import { CameraIcon } from "@heroicons/react/24/solid";
+import axios from "axios";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -19,7 +20,7 @@ const CreatePet = ({ handleModalClose }) => {
     color: "",
     eyeColor: "",
     dateOfBirth: "",
-    photo: "",
+    photo: "", // Only keep the photo property
     description: "",
   });
 
@@ -34,7 +35,10 @@ const CreatePet = ({ handleModalClose }) => {
       fileReader.onloadend = () => {
         setImagePreview(fileReader.result);
       };
-      if (file) fileReader.readAsDataURL(file);
+      if (file) {
+        fileReader.readAsDataURL(file);
+        handleImageUpload(file); // Call the upload function after preview is set
+      }
     } else {
       setPetDetails({
         ...petDetails,
@@ -43,20 +47,80 @@ const CreatePet = ({ handleModalClose }) => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleImageUpload = async (file) => {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/v1/user/upload",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      console.log("Image uploaded successfully:", response.data.data);
+
+      if (response.data.success) {
+        setPetDetails((prev) => ({ ...prev, photo: response.data.data }));
+        console.log("Image uploaded:", response.data.data);
+      }
+    } catch (error) {
+      console.error("Image upload failed:", error);
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Pet created:", petDetails);
-    navigate("/pets"); // Redirect to pets list or home page
+
+    try {
+      // Send pet details including the already uploaded image
+      const response = await axios.post(
+        "http://localhost:5000/api/v1/pet/create", // Adjust the endpoint accordingly for creating the pet
+        petDetails,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      // Optionally reset form after successful submission
+      setPetDetails({
+        name: "",
+        type: "",
+        breed: "",
+        age: "",
+        weight: "",
+        vaccinated: false,
+        specialNeeds: false,
+        healthDetails: "",
+        height: "",
+        furType: "",
+        color: "",
+        eyeColor: "",
+        dateOfBirth: "",
+        photo: "", // Reset photo field after submission
+        description: "",
+      });
+      // Reload the page to reflect the new pet addition
+      window.location.reload();
+      // Redirect or close modal after successful creation
+      handleModalClose();
+    } catch (error) {
+      console.error(
+        "Error creating pet:",
+        error.response?.data || error.message
+      );
+    }
   };
 
   const handleBack = () => {
-    // navigate(-1);
     handleModalClose();
     console.log("Back to previous page");
   };
 
   return (
-    // <div className="bg-white shadow-md rounded-lg p-6 mx-6 md:mx-12 lg:mx-20 my-8">
     <div>
       <div className="flex justify-between items-center mb-4 mx-4">
         <h2 className="text-2xl font-bold text-gray-900 ">Add New Pet</h2>
@@ -68,7 +132,6 @@ const CreatePet = ({ handleModalClose }) => {
       </div>
 
       <form onSubmit={handleSubmit}>
-        {/* Image and Pet Details Side by Side */}
         <div className="flex gap-4">
           {/* Image Column (First Column) */}
           <div className="col-span-1 flex ml-4">
@@ -95,7 +158,7 @@ const CreatePet = ({ handleModalClose }) => {
             </label>
           </div>
 
-          {/* Pet Details Columns (Second and Third Columns) */}
+          {/* Pet Details Columns */}
           <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border-2 rounded-lg border-gray-300">
             {/* Pet Name, Breed, and Type */}
             <div className="flex flex-col gap-4">
@@ -126,7 +189,6 @@ const CreatePet = ({ handleModalClose }) => {
                 required
               />
 
-              {/* Description */}
               <textarea
                 name="description"
                 placeholder="Pet Description"
@@ -165,7 +227,7 @@ const CreatePet = ({ handleModalClose }) => {
               <input
                 type="number"
                 name="age"
-                placeholder="Age (years)"
+                placeholder="Age(months)"
                 value={petDetails.age}
                 onChange={handleChange}
                 className="p-3 border-2 border-gray-300 rounded-lg"
@@ -218,7 +280,6 @@ const CreatePet = ({ handleModalClose }) => {
           </div>
         </div>
 
-        {/* Submit and Cancel Buttons */}
         <div className="flex justify-center gap-6 mt-8">
           <button
             type="submit"
