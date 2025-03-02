@@ -111,7 +111,7 @@ const AdminDashboard = () => {
                     <input
                       type="text"
                       placeholder="Search by Name"
-                      className="input input-bordered h-10 w-[60%] max-w-xs rounded-3xl items-center flex"
+                      className="input input-bordered h-10 w-[60%] max-w-xs rounded-xl items-center flex"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />

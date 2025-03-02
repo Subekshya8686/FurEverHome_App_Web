@@ -1,4 +1,4 @@
-import { PlusCircleIcon, UserCircleIcon } from "@heroicons/react/24/solid";
+import { PlusCircleIcon } from "@heroicons/react/24/solid";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import LoadingScreen from "../../../shared/LoadingScreen/LoadingScreen";
@@ -46,8 +46,6 @@ const UsersTable = () => {
     return matchesRole && matchesSearch;
   });
 
-
-
   return (
     <>
       {isLoading ? (
@@ -94,7 +92,7 @@ const UsersTable = () => {
                     <input
                       type="text"
                       placeholder="Search by Name, Email, Phone"
-                      className="input input-bordered h-10 max-w-xs rounded-3xl"
+                      className="input input-bordered h-10 max-w-xs rounded-xl"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />

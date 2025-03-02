@@ -8,7 +8,7 @@ const ConfirmDialogBox = ({
   isLoading,
 }) => {
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center font-lora">
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center font-lora z-50">
       <div className="relative bg-white rounded-lg shadow-lg w-80 p-6">
         <p className="text-lg font-medium text-center mb-4">{label}</p>
         <div className="flex justify-center gap-4">
