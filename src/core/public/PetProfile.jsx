@@ -1,16 +1,29 @@
 import { BookmarkIcon } from "@heroicons/react/24/solid";
+import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import AppBar from "../../shared/AppBar/AppBar";
 import Footer from "../../shared/Footer/Footer";
 
+const fetchPets = async () => {
+  const response = await axios.get(
+    "http://localhost:5000/api/v1/pet/getAllPets"
+  );
+  return response.data.pets;
+};
 const PetProfile = () => {
   const navigate = useNavigate();
   const { id } = useParams();
 
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [pet, setPet] = useState(null);
+
+  const {
+    data: pets,
+    isLoading,
+    error,
+  } = useQuery({ queryKey: ["pets"], queryFn: fetchPets });
 
   useEffect(() => {
     // Fetch pet data (this can be done using a real API call)
@@ -33,6 +46,8 @@ const PetProfile = () => {
 
     fetchPetData();
   }, [id]);
+
+  console.log("Pet data:", pet);
 
   const toggleBookmark = async () => {
     try {
@@ -80,7 +95,7 @@ const PetProfile = () => {
         <div className="bg-white shadow-md rounded-lg p-6 mx-6 lg:mx-20 flex flex-col lg:flex-row items-center justify-center gap-12 border-2">
           <div className="w-full lg:w-1/2 flex justify-center">
             <img
-              src={pet.photo}
+              src={`http://localhost:5000/uploads/${pet?.photo}`}
               alt={pet.name}
               className="w-72 md:w-80 lg:w-96 h-auto rounded-xl shadow-lg border-4"
             />
@@ -103,7 +118,7 @@ const PetProfile = () => {
                 Adopt {pet.name}
               </button>
               <button
-                onClick={() => navigate(`/adoption/${id}`)}
+                onClick={() => navigate(`/foster/${id}`)}
                 className="bg-[#96614D] text-white px-8 py-3 rounded-lg hover:bg-[#A2715E] transition-all duration-300 shadow-md"
               >
                 Foster {pet.name}
@@ -174,6 +189,43 @@ const PetProfile = () => {
               <strong>Date of Birth:</strong>{" "}
               {new Date(pet.dateOfBirth).toLocaleDateString()}
             </p>
+          </div>
+        </div>
+        <div className="flex justify-center flex-col py-6 lg:mx-20 md:mx-12">
+          <h3 className="text-xl font-bold text-center mb-6 text-gray-900 font-poppins">
+            View More {pet.type}s
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {pets
+              ?.filter((p) => p.type === pet?.type) // Ensure only same type pets are displayed
+              .slice(0, 4)
+              .map((pet) => (
+                <div
+                  key={pet.id}
+                  onClick={() => {
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                    navigate(`/profile/${pet._id}`);
+                  }}
+                  className="rounded-lg overflow-hidden shadow-sm bg-white hover:shadow-md transition-shadow duration-300 border-2 cursor-pointer"
+                >
+                  <img
+                    src={`http://localhost:5000/uploads/${pet?.photo}`}
+                    alt={pet.name}
+                    className="w-full h-56 object-cover rounded-t-lg"
+                  />
+                  <div className="p-4 sm:p-6 text-center relative">
+                    <h4 className="text-lg sm:text-xl font-semibold text-gray-800 font-poppins mb-2">
+                      {pet.name}
+                    </h4>
+                    <a
+                      href="#"
+                      className="text-gray-500 hover:text-gray-600 text-sm absolute bottom-2 right-4 sm:bottom-4 sm:right-6"
+                    >
+                      View More
+                    </a>
+                  </div>
+                </div>
+              ))}
           </div>
         </div>
       </div>
