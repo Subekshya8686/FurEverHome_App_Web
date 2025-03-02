@@ -1,3 +1,4 @@
+import { CameraIcon } from "@heroicons/react/24/solid";
 import { Dialog, DialogContent } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -20,6 +21,12 @@ const UserProfile = () => {
   const { id } = useParams();
   console.log(id);
 
+  const [bookmarkedPets, setBookmarkedPets] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const [openEditModal, setOpenEditModal] = useState(false);
+  const [userData, setUserData] = useState({});
+
   const {
     register,
     handleSubmit,
@@ -32,7 +39,12 @@ const UserProfile = () => {
     isLoading,
     error,
   } = useQuery({ queryKey: ["pets"], queryFn: fetchPets });
-  console.log(pets);
+
+  useEffect(() => {
+    if (userData.image) {
+      setImagePreview(userData.image);
+    }
+  }, [userData.image]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -50,68 +62,6 @@ const UserProfile = () => {
 
     fetchUserData();
   }, [id]);
-
-  const [bookmarkedPets, setBookmarkedPets] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const [openEditModal, setOpenEditModal] = useState(false);
-  const [userData, setUserData] = useState({});
-  // console.log(userData);
-
-  // Handle modal open/close
-  const handleOpenEditModal = () => setOpenEditModal(true);
-  const handleCloseEditModal = () => setOpenEditModal(false);
-
-  const [openForgotModal, setOpenForgotModal] = useState(false);
-
-  const handleOpenForgotModal = () => setOpenForgotModal(true);
-  const handleCloseForgotModal = () => setOpenForgotModal(false);
-
-  // Handle profile data change
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setUserData((prevData) => ({
-      ...prevData,
-      [name]: value, // This will update the correct field in the userData state
-    }));
-  };
-
-  // Handle form submission
-  const handleSaveChanges = () => {
-    // API call to update user profile goes here
-    console.log("Updated user data", userData);
-    handleCloseEditModal();
-  };
-
-  const onSubmit = async () => {
-    console.log("Updated user data", userData);
-    const dataToSend = { ...userData }; // Create a copy of userData
-    if (dataToSend.image === null) {
-      delete dataToSend.image; // Remove the image property if it's null
-    }
-    console.log("Data to send:", dataToSend);
-    try {
-      const response = await axios.put(
-        `http://localhost:5000/api/v1/user/update/${id}`,
-        dataToSend
-      );
-      console.log("User updated successfully:", response.data);
-      // Close the modal or do any other necessary action after successful update
-      handleCloseEditModal();
-    } catch (error) {
-      console.error("Error updating user:", error);
-    }
-  };
-
-  const [image, setImage] = useState(userData.image || "/default-user.png");
-
-  const handleImageChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setImage(imageUrl);
-    }
-  };
 
   useEffect(() => {
     const fetchBookmarkedPets = async () => {
@@ -140,16 +90,118 @@ const UserProfile = () => {
     fetchBookmarkedPets();
   }, []);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  // console.log(userData);
+
+  // Handle modal open/close
+  const handleOpenEditModal = () => setOpenEditModal(true);
+  const handleCloseEditModal = () => setOpenEditModal(false);
+
+  const [openForgotModal, setOpenForgotModal] = useState(false);
+
+  const handleOpenForgotModal = () => setOpenForgotModal(true);
+  const handleCloseForgotModal = () => setOpenForgotModal(false);
+
+  const [imagePreview, setImagePreview] = useState("");
+  console.log("Image preview:", imagePreview);
+
+  // Handle profile data change
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setUserData((prevData) => ({
+      ...prevData,
+      [name]: value, // This will update the correct field in the userData state
+    }));
+  };
+
+  const onSubmit = async () => {
+    console.log("Updated user data", userData);
+    const dataToSend = { ...userData }; // Create a copy of userData
+    if (dataToSend.image === null) {
+      delete dataToSend.image; // Remove the image property if it's null
+    }
+    console.log("Data to send:", dataToSend);
+    try {
+      const response = await axios.put(
+        `http://localhost:5000/api/v1/user/update/${id}`,
+        dataToSend
+      );
+      console.log("User updated successfully:", response.data);
+      // Close the modal or do any other necessary action after successful update
+      handleCloseEditModal();
+    } catch (error) {
+      console.error("Error updating user:", error);
+    }
+  };
+
+  const [image, setImage] = useState(userData.image || "/default-user.png");
+
+  const handleImageChange = (e) => {
+    const { name, value, type } = e.target;
+    if (type === "file") {
+      const file = e.target.files[0];
+      if (file) {
+        setImagePreview(URL.createObjectURL(file));
+        handleImageUpload(file);
+      }
+    } else {
+      setUserData({ ...userDetails, [name]: value });
+    }
+  };
+
+  const handleImageUpload = async (imageFile) => {
+    const formData = new FormData();
+    formData.append("image", imageFile);
+
+    try {
+      const { data } = await axios.post(
+        "http://localhost:5000/api/v1/user/upload", // Your image upload endpoint
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+      console.log("Image uploaded successfully:", data.data); // Assuming response contains image URL
+
+      setImagePreview(data?.data);
+      // Now update user data with the uploaded image URL
+      setUserData((prevData) => ({
+        ...prevData,
+        image: data.data, // Assuming data.data contains the image URL
+      }));
+
+      // Update user profile after the image upload
+      await updateUserProfile(data.data); // Update the profile immediately with the new image
+    } catch (error) {
+      console.error("Error uploading image:", error.message || error);
+    }
+  };
+
+  const updateUserProfile = async (imageUrl) => {
+    const updatedData = {
+      ...userData,
+      image: imageUrl, // Use the image URL directly here
+    };
+    console.log("Updated user data:", updatedData);
+
+    try {
+      const response = await axios.put(
+        `http://localhost:5000/api/v1/user/update/${id}`, // Update the user profile endpoint
+        updatedData
+      );
+      console.log("User profile updated successfully:", response.data);
+    } catch (error) {
+      console.error("Error updating user profile:", error.message || error);
+    }
+  };
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+  // if (!data) return <div>No Data Available</div>;
 
   return (
     <div className="min-h-screen bg-white font-lora">
       <AppBar />
       <div className="flex flex-col mx-8 my-6">
         <div className="bg-white shadow-md rounded-lg p-6 mx-6 md:mx-12 lg:mx-20 flex flex-col lg:flex-row items-center justify-center gap-12 my-4 border-2">
-          <div className="w-full lg:w-1/2 flex justify-center">
+          {/* <div className="w-full lg:w-1/2 flex justify-center">
             <img
               src={image}
               alt={userData.name}
@@ -161,6 +213,29 @@ const UserProfile = () => {
               onChange={handleImageChange}
               className="mt-4 text-sm text-gray-700"
             />
+          </div> */}
+          <div className="w-full lg:w-1/2 flex justify-center">
+            <input
+              type="file"
+              name="image"
+              onChange={handleImageChange}
+              className="hidden"
+              id="user-image"
+            />
+            <label
+              htmlFor="user-image"
+              className="cursor-pointer w-48 h-48 border-2 border-gray-300 rounded-md flex items-center justify-center"
+            >
+              {imagePreview ? (
+                <img
+                  src={`http://localhost:5000/uploads/${imagePreview}`}
+                  alt="Preview"
+                  className="w-full h-full object-cover rounded-md shadow-md"
+                />
+              ) : (
+                <CameraIcon className="w-12 h-12 text-gray-400" />
+              )}
+            </label>
           </div>
 
           <div className="w-full lg:w-1/2 text-center lg:text-left">
@@ -188,14 +263,14 @@ const UserProfile = () => {
         </div>
 
         {/* Bookmarked pets section */}
-        {bookmarkedPets.length > 0 && (
+        {bookmarkedPets && bookmarkedPets.length > 0 && (
           <div className="flex justify-center flex-col py-6 lg:mx-20 md:mx-12">
             <h3 className="text-xl font-bold text-center mb-6 text-gray-900 font-poppins">
               Bookmarked Pets
             </h3>
-            {bookmarkedPets.length > 0 ? (
+            {bookmarkedPets && bookmarkedPets.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {bookmarkedPets.map((pet) => (
+                {bookmarkedPets?.map((pet) => (
                   <div
                     key={pet._id}
                     onClick={() => {
@@ -205,7 +280,7 @@ const UserProfile = () => {
                     className="rounded-lg overflow-hidden shadow-sm bg-white hover:shadow-md transition-shadow duration-300 border-2 cursor-pointer"
                   >
                     <img
-                      src={pet.photo}
+                      src={`http://localhost:5000/uploads/${pet?.photo}`}
                       alt={pet.name}
                       className="w-full h-56 object-cover rounded-t-lg"
                     />
