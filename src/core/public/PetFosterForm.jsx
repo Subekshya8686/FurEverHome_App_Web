@@ -1,10 +1,12 @@
 import { ArrowLeftIcon } from "@heroicons/react/16/solid";
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import AppBar from "../../shared/AppBar/AppBar";
 import ConfirmDialogBox from "../../shared/ConfirmDialogBox/ConfirmDialogBox";
 
 const FosterApplicationForm = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const [isDialogOpen, setIsDialogOpen] = useState(false); // State to manage dialog visibility
@@ -12,6 +14,7 @@ const FosterApplicationForm = () => {
 
   const [formData, setFormData] = useState({
     applicantName: "",
+    petId: "",
     applicantEmail: "",
     applicantPhone: "",
     districtOrCity: "",
@@ -27,6 +30,29 @@ const FosterApplicationForm = () => {
     hasFencedYard: false,
     agreementToTerms: false,
   });
+
+  const [pet, setPet] = useState(null);
+  const userId = localStorage.getItem("userId");
+
+  useEffect(() => {
+    // Fetch pet data (this can be done using a real API call)
+    const fetchPetData = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:5000/api/v1/pet/get/${id}`
+        );
+        setPet(response.data);
+
+        // Check if the logged-in user's ID matches any in the bookmarkedBy array
+        // Assuming the userId is stored in localStorage
+      } catch (error) {
+        console.error("Error fetching pet data:", error);
+      }
+    };
+
+    fetchPetData();
+  }, [id]);
+  console.log("Pet data:", pet);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -64,6 +90,25 @@ const FosterApplicationForm = () => {
     navigate(-1);
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      await axios.post("http://localhost:5000/api/v1/foster/apply", {
+        ...formData,
+        applicantId: userId,
+        petId: id,
+      });
+      setIsLoading(false);
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 2000);
+    } catch (error) {
+      console.error("Error submitting application:", error);
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 font-lora">
       <AppBar />
@@ -76,7 +121,10 @@ const FosterApplicationForm = () => {
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">
                   Personal Details
                 </h2>
-                <form className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <form
+                  className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                  onSubmit={handleSubmit}
+                >
                   <div>
                     <label
                       htmlFor="applicantName"
@@ -182,18 +230,19 @@ const FosterApplicationForm = () => {
 
                   <div>
                     <label htmlFor="hasPets" className="block text-gray-700">
-                      Do you have any pets?
+                      Do you currently own any pets?
                     </label>
-                    <input
-                      type="checkbox"
+                    <select
                       id="hasPets"
                       name="hasPets"
-                      checked={formData.hasPets}
+                      value={formData.hasPets}
                       onChange={handleChange}
-                      className="input input-bordered w-full"
-                    />
+                      className="select select-bordered w-full"
+                    >
+                      <option value="true">Yes</option>
+                      <option value="false">No</option>
+                    </select>
                   </div>
-
                   <div>
                     <label
                       htmlFor="residenceType"
@@ -333,6 +382,7 @@ const FosterApplicationForm = () => {
                     </button>
                     <button
                       type="button"
+                      onClick={handleSubmit}
                       className="btn bg-[#6AA693] text-white w-1/3 md:col-span-2 flex"
                     >
                       Submit Application
@@ -342,12 +392,46 @@ const FosterApplicationForm = () => {
               </>
             )}
           </div>
-          <div className="w-full lg:w-1/3 mb-6 lg:mb-0">
-            <div className="mb-6 lg:mb-0">
-              <button className="text-gray-600 text-xl" onClick={handleReturn}>
-                <ArrowLeftIcon className="h-5 w-5 mr-2" />
-                Return to Previous Page
-              </button>
+          <div className="w-full lg:w-1/3  flex flex-col">
+            <button
+              className="flex gap-1 font-lora justify-end mb-2"
+              onClick={handleReturn}
+            >
+              <ArrowLeftIcon className="w-6 h-6 text-[#6AA693]" />
+              Back
+            </button>
+            <div className="w-full bg-gray-100 p-6 rounded-lg mt-6 lg:mt-0 md:mb-4 sm:mb-4">
+              <div className="flex flex-col items-center">
+                {/* Display pet image */}
+                <img
+                  src={`http://localhost:5000/uploads/${pet?.photo}`} // Ensure the image URL is correct
+                  alt={pet?.name || "Pet Image"}
+                  className="w-32 h-32 rounded-lg object-cover"
+                />
+                {/* Display pet name and gender */}
+                <h3 className="text-lg font-bold mt-2">
+                  {pet?.name}{" "}
+                  <span className="text-blue-500">
+                    {pet?.gender === "Male" ? "♂" : "♀"}
+                  </span>
+                </h3>
+                {/* Display pet age */}
+                <p className="text-gray-600">{pet?.age} months</p>
+                {/* Display pet type */}
+                <p className="text-gray-600">{pet?.type}</p>
+              </div>
+              <div className="mt-4 border-t pt-4">
+                <h4 className="font-semibold">Description</h4>
+                <p className="text-gray-600 text-sm">
+                  {pet?.description || "No description available"}
+                </p>
+              </div>
+              <div className="mt-4 border-t pt-4">
+                <h4 className="font-semibold">Medical Conditions</h4>
+                <p className="text-gray-600 text-sm">
+                  {pet?.medicalConditions || "None"}
+                </p>
+              </div>
             </div>
           </div>
         </div>
