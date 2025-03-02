@@ -1,13 +1,32 @@
-import React from "react";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import ConfirmDialogBox from "../../shared/ConfirmDialogBox/ConfirmDialogBox";
 
 const Layout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const isActive = (path) =>
     location.pathname === path
       ? "bg-[#96614D] text-white font-semibold rounded-xl"
       : "text-gray-700 hover:bg-[#d9a18d] hover:text-white rounded-xl";
+
+  const handleLogout = () => {
+    setIsDialogOpen(true);
+  };
+
+  const handleDialogClose = () => {
+    setIsDialogOpen(false);
+  };
+
+  const handleDialogConfirm = () => {
+    setIsDialogOpen(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    localStorage.removeItem("authToken"); // Remove token on logout
+    navigate("/"); // Optionally, navigate to the homepage
+  };
 
   return (
     <div className="flex h-screen font-lora">
@@ -65,7 +84,26 @@ const Layout = () => {
             </Link>
           </li>
         </ul>
+        {/* Logout Button */}
+        <div className="mt-auto">
+          <button
+            onClick={handleLogout}
+            className="block p-2 w-full text-gray-700 hover:bg-[#d9a18d] hover:text-white rounded-xl mt-4"
+          >
+            Logout
+          </button>
+        </div>
       </div>
+
+      {isDialogOpen && (
+        <ConfirmDialogBox
+          open={isDialogOpen}
+          handleClose={handleDialogClose}
+          label={"Are you sure you want to Log Out?"}
+          handleConfirm={handleDialogConfirm}
+          // isLoading={isLoading}
+        />
+      )}
 
       {/* Main Content */}
       <div className="flex-1 p-4 sm:p-6 bg-gray-50">
