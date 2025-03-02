@@ -2,7 +2,7 @@ import { CameraIcon } from "@heroicons/react/24/solid";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const CreatePet = () => {
+const CreatePet = ({ handleModalClose }) => {
   const navigate = useNavigate();
 
   const [petDetails, setPetDetails] = useState({
@@ -50,7 +50,9 @@ const CreatePet = () => {
   };
 
   const handleBack = () => {
-    navigate(-1); // Go back to previous page
+    // navigate(-1);
+    handleModalClose();
+    console.log("Back to previous page");
   };
 
   return (
